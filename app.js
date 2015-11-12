@@ -2,10 +2,20 @@
 
 var argv = require('touchka').argv;
 var service = require('touchka').Service;
+var error = require('touchka').error;
 var port = argv.port || 3000;
 var env = argv.env || 'dev';
 
 var srv = service('referal_system');
+var busy = require('busy');
+
+srv.use(function(req, res, next) {
+	if (busy.blocked) {
+		return error(new Error("I'm busy right now, sorry."), res, 503);
+	} else {
+		next();
+	}
+});
 
 if (env != 'dev') {
 	srv.use(require('./auth'));
