@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node test"
+    "test": "node test",
+    "start": "node index --port=80 --env=dev --DB_USER=admin --DB_PASS=wrhSRYIZ5c --DB_HOST=10.0.4.55"
   },
   "keywords": [
     "Referal",
