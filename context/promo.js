@@ -1,8 +1,9 @@
-var router = require('touchka').Router();
-var URL = require('touchka').argv.AUTH_URL || 'http://localhost:3030';
+var config = require('../config.json');
+var router = require('touchka-service').Router();
+var URL = config.AUTH_URL || 'http://localhost:3030';
 
-var error = require('touchka').error;
-var ok = require('touchka').ok;
+var error = require('touchka-service').error;
+var ok = require('touchka-service').ok;
 
 router
 

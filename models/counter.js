@@ -6,7 +6,7 @@ var CounterSchema = new Schema({
 	seq: { type: Number, default: 0 }
 });
 
-module.exports = function(conn) {	
+module.exports = function(conn) {
 	var Counter = conn.model('Counter', CounterSchema);
 
 	Counter.getId = function(entity, callback) {

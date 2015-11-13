@@ -1,7 +1,8 @@
 'use strict';
 
-var error = require('touchka').error;
-var CONTROL_PANEL_IP = require('touchka').argv.CONTROL_PANEL_IP || '::1';
+var config = require('./config.json');
+var error = require('touchka-service').error;
+var CONTROL_PANEL_IP = config.CONTROL_PANEL_IP || '::1';
 
 module.exports = function(req, res, next) {
   var context = req.originalUrl.split('/');

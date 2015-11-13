@@ -1,7 +1,7 @@
-var router = require('touchka').Router();
+var router = require('touchka-service').Router();
 
-var error = require('touchka').error;
-var ok = require('touchka').ok;
+var error = require('touchka-service').error;
+var ok = require('touchka-service').ok;
 
 router
 
