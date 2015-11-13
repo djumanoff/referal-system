@@ -1,21 +1,13 @@
 'use strict';
 
-var argv = require('touchka').argv;
-var service = require('touchka').Service;
-var port = argv.port || 3000;
-var env = argv.env || 'dev';
+var config = require('./config.json');
+var name = require('./package.json').name;
 
-var srv = service('referal_system');
+var service = require('touchka-service').Service;
+var port = config.port || 3000;
+var env = config.env || 'dev';
 
-var error = require('touchka').error;
-var busy = require('busy');
-srv.use(function(req, res, next) {
-	if (busy.blocked) {
-		return error(new Error("I'm busy right now, sorry."), res, 503);
-	} else {
-		next();
-	}
-});
+var srv = service(name);
 
 if (env != 'dev') {
 	srv.use(require('./auth'));

@@ -1,12 +1,12 @@
 var mongoose = require('mongoose');
-var argv = require('touchka').argv;
+var config = require('./config.json');
 
-var DB_HOST = argv.DB_HOST || '127.0.0.1';
-var DB_PORT = argv.DB_PORT || '27017';
-var DB_NAME = argv.DB_NAME || 'touchka-refsys';
-var DB_USER = argv.DB_USER || '';
-var DB_PASS = argv.DB_PASS || '';
-var DB_OPTIONS = argv.DB_OPTIONS || '{ "poolSize": 5 }';
+var DB_HOST = config.DB_HOST || '127.0.0.1';
+var DB_PORT = config.DB_PORT || '27017';
+var DB_NAME = config.DB_NAME || 'touchka-refsys';
+var DB_USER = config.DB_USER || '';
+var DB_PASS = config.DB_PASS || '';
+var DB_OPTIONS = config.DB_OPTIONS || '{ "poolSize": 5 }';
 var DB_URL = 'mongodb://' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME;
 
 module.exports = function() {

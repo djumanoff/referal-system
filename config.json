@@ -1,0 +1,16 @@
+{
+    "_": [],
+    "help": false,
+    "port": 10101,
+    "p": "3000",
+    "env": "dev",
+    "DB_PORT": 27017,
+    "DB_HOST": "127.0.0.1",
+    "DB_USER": "",
+    "DB_NAME": "touchka-refsys",
+    "DB_PASS": "",
+    "ENTRYPOINT": "http://localhost:3030",
+    "EP": "http://localhost:3030",
+    "AUTH_URL": "http://localhost:3030",
+    "$0": "index.js"
+}
