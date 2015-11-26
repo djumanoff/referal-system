@@ -3,7 +3,7 @@
     "help": false,
     "env": "dev",
     "port": 8080,
-    "p": "3000",
+    "p": "8080",
     "DB_PORT": 27017,
     "DB_HOST": "127.0.0.1",
     "DB_USER": "",

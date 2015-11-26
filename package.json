@@ -20,7 +20,9 @@
     "busy": "^0.1.1",
     "mongoose": "^4.2.4",
     "randomstring": "^1.1.3",
-    "touchka": "^1.0.2",
+    "touchka-argv": "^1.0.0",
+    "touchka-boostrap": "^1.0.0",
+    "touchka-service": "^1.0.0",
     "busy": "^0.1.1"
   }
 }
