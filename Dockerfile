@@ -1,9 +1,9 @@
 FROM node:4
 
-MAINTAINER Idris
+MAINTAINER Idris Djumanov
 
-COPY . /app
+COPY . /
 
-RUN cd /app; npm install
+RUN cd /; npm install -g forever; npm install
 
-CMD ["node", "/app/index", "env-file /app/env.list"]
+CMD ["npm", "start"]

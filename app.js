@@ -1,7 +1,7 @@
 'use strict';
 
-var config = require('./config.json');
-var name = require('./package.json').name;
+var config = require('./config');
+var name = require('./package').name;
 
 var service = require('touchka-service').Service;
 var port = config.port || 3000;
@@ -21,6 +21,6 @@ srv
 	.plugin('/rewards', require('./context/reward'))
 	.ready(function() {
 		console.log('server is running on ' + port);
-		require('./init')();
+		require('./init');
 	})
 	.listen(port);
