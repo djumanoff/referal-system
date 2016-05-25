@@ -1,78 +1,36 @@
 FORMAT: 1A
 HOST: http://refsys.dar.kz/api/v1
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+# DarEcosystem Core
 
-## Vendors Collection [/vendors]
+## Промо коды [/codes]
 
-### List All Vendors [GET]
+### Получить промо код [GET /codes/{entity_type}/{entity_id}]
+
++ Parameters
+
+    + entity_type (String) - тип пользователя, например halvauser, creditonuser
+    + entity_id (Integer) - идентификатор пользователя
 
 + Response 200 (application/json)
 
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
-
-+ Request (application/json)
-
         {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
+            "code": "NWWBGYH11",
+            "forward_points": 0,
+            "backward_points": 0
         }
 
-+ Response 201 (application/json)
+### Применить промокод [POST /codes/{entity_type}/{entity_id}/apply/{code}]
 
-    + Headers
++ Parameters
 
-            Location: /questions/2
+    + entity_type (String) - тип пользователя, который вводит промо код, например, halvauser, creditonuser
+    + entity_id (Integer) - идентификатор пользователя, который вводит промо код,
+    + code (String) - промо код который ввел пользователь 
+
++ Response 200 (application/json)
 
     + Body
 
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
-            }
+        {}
+        

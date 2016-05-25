@@ -73,10 +73,15 @@ app
 
 function log(req, res) {
 	var data = { query: req.query, body: req.body, params: req.params };
-	console.log((new Date()).toISOString() 
+	var date = new Date();
+
+	console.log(
+		// date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+		date.toISOString()
 		+ ' ' + req.method
 		+ ' ' + req.originalUrl 
 		+ ' ' + res.statusCode 
 		+ ' ' + JSON.stringify(data) 
-		+ '\t' + JSON.stringify(res.response));
+		+ '\t' + JSON.stringify(res.response)
+	);
 }

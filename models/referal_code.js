@@ -35,22 +35,22 @@ schema.index({ start_time: 1 });
 schema.index({ expire_time: 1 });
 
 schema.pre('save', function(next) {
-  var self = this;
-  if (!Counter) {
-  	return next();
-  }
-  self.updated_time = new Date();
-  if (self.code_id) {
-  	return next();
-  }
-  self.created_time = new Date();
+    var self = this;
+    if (!Counter) {
+        return next();
+    }
+    self.updated_time = new Date();
+        if (self.code_id) {
+        return next();
+    }
+    self.created_time = new Date();
 
-  Counter.getId('ref_code', function(err, id) {
-  	if (err) return next(err);
-  	self.code_id = id;
-  	self.code = rndstr.generate(6).toUpperCase();
-    next();
-  });  
+    Counter.getId('ref_code', function(err, id) {
+        if (err) return next(err);
+        self.code_id = id;
+        self.code = rndstr.generate(6).toUpperCase() + self.entity_type[0].toUpperCase() + self.entity_id;
+        next();
+    });
 });
 
 module.exports = function(conn) {
