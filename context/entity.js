@@ -1,11 +1,11 @@
-var router = require('touchka-service').Router();
+var router = require('express').Router();
 
-var error = require('touchka-service').error;
-var ok = require('touchka-service').ok;
+// var error = require('touchka-service').error;
+// var ok = require('touchka-service').ok;
 
 router
 
-// .post('/', function(req, res) {
+// .post('/', function(req, res, next) {
 //   var now = new Date();
 //   var values = {
 //     entity_id: req.body.entity_id,
@@ -25,24 +25,22 @@ router
 //   });
 // })
 
-// .get('/', function(req, res) {
+// .get('/', function(req, res, next) {
 //   Entity.find(req.query).exec(function(err, result) {
 //     if (err) return error(err, res);
 //     ok(result, res);
 //   });
 // })
 
-.prefix('/:type/:id')
-
 .param('id', function(req, res, next, id) {
   if (!parseInt(id)) {
-    return error(new Error('Please provide correct entity id.'), res, 400);
+    return next({ message: 'Please provide correct entity id.', status: 400 });
   }
   next();
 })
 .param('type', function(req, res, next, type) {
   if (!type) {
-    return error(new Error('Please provide correct entity type.'), res, 400);
+    return next({ message: 'Please provide correct entity type.', status: 400 });
   }
   next();
 })
@@ -65,16 +63,18 @@ router
  * @return object - information about the entity
  */
 
-.get('/', function(req, res) {
+.get('/:type/:id', function(req, res, next) {
   Entity.findOne({ entity_id: req.params.id, entity_type: req.params.type }).exec(function(err, row) {
-    if (err) return error(err, res);
-    if (!row) return error('Entity not found.', res, 404);
+    if (err) return next({ message: err.message, status: err.code || 500 });
+    if (!row) return next({ message: 'Entity not found.', status: 404 });
 
-    ok({
+    res.response = {
       entity_type: row.entity_type,
       entity_id: row.entity_id,
       points: row.points
-    }, res);
+    };
+
+    next();
   });
 })
 
@@ -95,7 +95,7 @@ router
  * @return {}
  */
 
-.post('/points/:amount/redeem', function(req, res) {
+.post('/:type/:id/points/:amount/redeem', function(req, res, next) {
   var amount = req.params.amount;
   var auth = req.headers.authorization;
 
@@ -103,16 +103,16 @@ router
   var operation_id = req.body.operation_id;
 
   if (!operation_id) {
-    return error(new Error('You need to specify operation id'), res, 400);
+    return next({ message: 'You need to specify operation id', status: 400 });
   }
 
   Transaction.findOne({ operation_type: operation_type, operation_id: operation_id }, function(err, operation) {
-    if (err) return error(err, res);
-    if (operation) return ok({}, res);
+    if (err) return next({ message: err.message, status: err.code || 500 });
+    if (operation) return next();
 
     Entity.findOne({ entity_id: req.params.id, entity_type: req.params.type }, function(err, row) {
-      if (err) return error(err, res);
-      if (!row) return error('Entity not found.', res, 404);
+      if (err) return next({ message: err.message, status: err.code || 500 });
+      if (!row) return next({ message: 'Entity not found.', status: 404 });
 
       Transaction.create({
         operation_type: operation_type,
@@ -123,19 +123,19 @@ router
         },
         amount: (-amount)
       }, function(err, trans) {
-        if (err) return error(err, res);
-        if (!trans) return error(new Error('Server error.'), res);
+        if (err) return next({ message: err.message });
+        if (!trans) return next({ message: 'Server error.' });
 
         row.points -= amount;
         row.save();
 
-        ok({}, res);
+        next();
       });
     });
   });
 })
 
-// .delete('/', function(req, res) {
+// .delete('/', function(req, res, next) {
 //   Entity.find({ entity_id: req.params.id, entity_type: req.params.type }).remove().exec(function(err, result) {
 //     if (err) return error(err, res);
 //     ok(result, res);

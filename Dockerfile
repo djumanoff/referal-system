@@ -1,9 +1,15 @@
-FROM node:4
+FROM tatsushid/tinycore-node:5.7
+
+# FROM node:4
 
 MAINTAINER Idris Djumanov
 
 COPY . /
 
-RUN cd /; npm install -g forever; npm install
+WORKDIR /app
+
+RUN npm install -g forever
+
+RUN npm install
 
 CMD ["npm", "start"]

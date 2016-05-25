@@ -1,27 +1,27 @@
 var config = require('../config.json');
-var router = require('touchka-service').Router();
+var router = require('express').Router();
 var URL = config.AUTH_URL || 'http://localhost:3030';
 
-var error = require('touchka-service').error;
-var ok = require('touchka-service').ok;
+// var error = require('touchka-service').error;
+// var ok = require('touchka-service').ok;
 
 router
 
-.post('/', function(req, res) {
+.post('/', function(req, res, next) {
   var vendor_id = req.body.vendor_id;
   var values = {
-    title: req.body.title.trim(),
-    name: req.body.name.trim(),
-    description: req.body.description.trim(),
-    entity_type: (req.body.entity_type || vendor.entity_type).trim(),    
+    title: (req.body.title && req.body.title.trim()) || '',
+    name: (req.body.name && req.body.name.trim()) || '',
+    description: (req.body.description && req.body.description.trim()) || '',
+    entity_type: (req.body.entity_type && req.body.entity_type.trim()) || '',
     vendor_id: parseInt(req.body.vendor_id),
-    start_time: req.body.start_time,
-    expire_time: req.body.expire_time,
-    usage_limit: parseInt(req.body.usage_limit),
-    use_limit: parseInt(req.body.use_limit),      
-    code_limit: parseInt(req.body.code_limit),
-    forward_points: parseInt(req.body.forward_points),
-    backward_points: parseInt(req.body.backward_points),
+    start_time: req.body.start_time || new Date(),
+    expire_time: req.body.expire_time || null,
+    usage_limit: parseInt(req.body.usage_limit) || 0,
+    use_limit: parseInt(req.body.use_limit) || 0,
+    code_limit: parseInt(req.body.code_limit) || 0,
+    forward_points: parseInt(req.body.forward_points) || 0,
+    backward_points: parseInt(req.body.backward_points) || 0,
     special: req.body.special ? true : false,
     forward_immediate: req.body.forward_immediate ? true : false,
     backward_immediate: req.body.backward_immediate ? true : false,
@@ -29,46 +29,53 @@ router
   };
 
   Promo.findOne({ name: values.name }, function(err, promo) {
-    if (err) return error(err, res);
-    if (promo) return ok(promo, res);
+    if (err) return next(err);
+    if (promo) {
+      res.response = promo;
+      return next();
+    }
 
     Vendor.findOne({ vendor_id: vendor_id }, function(err, vendor) {
-      if (err) return error(err, res);
-      if (!vendor) return error('No vendor', res, 404);    
+      if (err) return next(err);
+      if (!vendor) return next({ message: 'No vendor', status: 404 });
+
+      values.entity_type = values.entity_type || vendor.entity_type;
 
       Promo.create(values, function(err, result) {
-        if (err) return error(err, res);
-        ok(result, res);
+        if (err) return next(err);
+        res.response = result;
+        next();
       });
     });  
   });  
 })
 
-.get('/', function(req, res) {
+.get('/', function(req, res, next) {
   Promo.find(req.query, function(err, result) {
-    if (err) return error(err, res);
-    ok({ list: result }, res);
+    if (err) return error(err);
+    res.response = { list: result };
+    next();
   });
 })
 
-.prefix('/:id')
-
 .param('id', function(req, res, next, id) {
   if (!parseInt(id)) {
-    return error(new Error('Please provide id.'), res, 400);
+    return next({ message: 'Please provide id.', status: 400 });
   }
   next();
 })
 
-.get('/', function(req, res) {
+.get('/:id', function(req, res, next) {
   Promo.findOne({ promo_id: req.params.id }, function(err, row) {
-    if (err) return error(err, res);
-    if (!row) return error(new Error('Promo campaign not found'), res, 404);    
-    ok(row, res);
+    if (err) return next(err);
+    if (!row) return next({ message: 'Promo campaign not found', status: 404 });
+
+    res.response = row;
+    next();
   });
 })
 
-.post('/', function(req, res) {
+.post('/:id', function(req, res, next) {
   var values = {};
 
   if (req.body.title) {
@@ -105,15 +112,19 @@ router
   values.special = req.body.special ? true : false;
     
   Promo.update({ promo_id: req.params.id }, values).exec(function(err, result) {
-    if (err) return error(err, res);
-    ok(result, res);
+    if (err) return next(err);
+
+    res.response = result;
+    next();
   });
 })
 
-.delete('/', function(req, res) {
+.delete('/:id', function(req, res, next) {
   Promo.find({ promo_id: req.params.id }).remove().exec(function(err, result) {
-    if (err) return error(err, res);
-    ok(result, res);
+    if (err) return next(err);
+
+    res.response = result;
+    next();
   });
 });
 

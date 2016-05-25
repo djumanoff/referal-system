@@ -17,12 +17,12 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.5.0",
+    "body-parser": "^1.15.1",
     "busy": "^0.1.1",
+    "express": "^4.13.4",
     "mongoose": "^4.2.4",
+    "morgan": "^1.7.0",
     "randomstring": "^1.1.3",
-    "touchka-argv": "^1.0.0",
-    "touchka-boostrap": "^1.0.0",
-    "touchka-service": "^1.0.0",
-    "busy": "^0.1.1"
+    "touchka-argv": "*"
   }
 }

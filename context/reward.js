@@ -1,14 +1,12 @@
-var router = require('touchka-service').Router();
-
-var error = require('touchka-service').error;
-var ok = require('touchka-service').ok;
+var router = require('express').Router();
 
 router
 
-.get('/', function(req, res) {
+.get('/', function(req, res, next) {
   Reward.find(req.query).exec(function(err, result) {
-    if (err) return error(err, res);
-    ok({ list: result }, res);
+    if (err) return next(err);
+    res.response = { list: result };
+    next();
   });
 })
 
@@ -27,26 +25,24 @@ router
  * @return object - total number of points left to user
  */
 
-.post('/:reward_id/fulfil', function(req, res) {
+.post('/:reward_id/fulfil', function(req, res, next) {
   var reward_id = req.params.reward_id;
 
   Reward.findOne({ status: 'pending', reward_id: reward_id }, function(err, reward) {
-    if (err) return error(err, res);
-    if (!reward) return error(new Error('Reward not found.'), res, 404);
+    if (err) return next(err);
+    if (!reward) return next({ message: 'Reward not found.', status: 404 });
 
     Entity.findOne({ entity_type: reward.entity_type, entity_id: reward.entity_id }, function(err, entity) {
-      if (err) return error(err, res);
-      if (!entity) return error(new Error('Entity not found.'), res, 404);
+      if (err) return next(err);
+      if (!entity) return next({ message: 'Entity not found.', status: 404 });
 
       reward.status = 'fulfiled';
       reward.fulfiled_time = new Date();
       reward.save(function(err, result) {
-        if (err) return error(err, res);
+        if (err) return next(err);
         
         entity.points += reward.points;
-        entity.save();
-
-        ok({ total: entity.points }, res);
+        entity.save();        
 
         Transaction.create({
           to: {
@@ -55,6 +51,9 @@ router
           },
           amount: reward.points
         }, function() {});
+
+        res.response = { total: entity.points };
+        next();
       });
     });
   });

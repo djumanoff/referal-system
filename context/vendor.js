@@ -1,65 +1,67 @@
-var router = require('touchka-service').Router();
+var router = require('express').Router();
 
 var config = require('../config.json');
 var URL = config.AUTH_URL || 'http://localhost:3030';
 
-var error = require('touchka-service').error;
-var ok = require('touchka-service').ok;
-
 router
 
-.post('/', function(req, res) {
+.post('/', function(req, res, next) {
   var now = Date.now();
   var values = {
-    title: req.body.title.trim(),
-    name: req.body.name.trim(),
-    entity_type: req.body.entity_type.trim(),
+    title: (req.body.title && req.body.title.trim()) || '',
+    name: (req.body.name && req.body.name.trim()) || '',
+    entity_type: (req.body.entity_type && req.body.entity_type.trim()) || '',
     created_time: now,
     updated_time: now
   };
   Vendor.findOne({ name: values.name }).exec(function(err, vendor) {
-    if (err) return error(err, res);
-    if (vendor) return ok(vendor, res);
+    if (err) return next(err);
+    if (vendor) {
+      res.response = vendor;
+      return next();
+    }
     
     Vendor.create(values, function(err, result) {
-      if (err) return error(err, res);
-      ok(result, res);
+      if (err) return next(err);
+      res.response = result;
+      return next();
     });
   });  
 })
 
-.get('/', function(req, res) {
+.get('/', function(req, res, next) {
   var query = req.query;
   var skip = query.skip || 0;
   var limit = query.limit || 40;
 
-  delete query.skip; delete query.limit;
+  delete query.skip; 
+  delete query.limit;
 
   Vendor.find(query).exec(function(err, result) {
-    if (err) return error(err, res);
-    ok({ list: result }, res);
+    if (err) return next(err);
+    res.response = { list: result };
+    return next();
   });
 })
 
-.prefix('/:id')
-
 .param('id', function(req, res, next, id) {
   if (!parseInt(id)) {
-    return error(new Error('Please provide correct vendor id.'), res, 400);
+    return next({ message: 'Please provide correct vendor id.', status: 400 });
   }
   next();
 })
 
-.get('/', function(req, res) {
+.get('/:id', function(req, res, next) {
   Vendor.findOne({ vendor_id: req.params.id }).exec(function(err, row) {
-    if (err) return error(err, res);
-    if (!row) return error('Vendor not found.', res, 404);
+    if (err) return next(err);
+    if (!row) return next({ message: 'Vendor not found.', status: 404 });
 
-    ok(row, res);
+    res.response = row;
+    next();
   });
 })
 
-.post('/', function(req, res) {
+.post('/:id', function(req, res, next) {
   var values = {};
 
   if (req.body.title) {
@@ -68,15 +70,18 @@ router
   
   values.updated_time = Date.now();
   Vendor.update({ vendor_id: req.params.id }, values).exec(function(err, result) {
-    if (err) return error(err, res);
-    ok(result, res);
+    if (err) return next(err);
+
+    res.response = result;
+    next();
   });
 })
 
-.delete('/', function(req, res) {
+.delete('/:id', function(req, res, next) {
   Vendor.find({ vendor_id: req.params.id }).remove().exec(function(err, result) {
-    if (err) return error(err, res);
-    ok(result, res);
+    if (err) return next(err);
+    res.response = result;
+    next();
   });
 });
 

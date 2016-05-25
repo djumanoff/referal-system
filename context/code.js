@@ -1,7 +1,5 @@
-var router = require('touchka-service').Router();
+var router = require('express').Router();
 var async = require('async');
-var error = require('touchka-service').error;
-var ok = require('touchka-service').ok;
 
 router
 
@@ -23,31 +21,40 @@ router
  * @return object - information about promo code (code, backward reward points, forward reward points)
  */
 
-.get('/:entity_type/:entity_id', function(req, res) {
-  var entity_type = req.params.entity_type.trim();
+.get('/:entity_type/:entity_id', function(req, res, next) {
+  var entity_type = req.params.entity_type && req.params.entity_type.trim();
   var entity_id = parseInt(req.params.entity_id);
 
   if (!entity_type) {
-    return error(new Error('No entity type.'), res, 400);
+    return next({ message: 'No entity type.', status: 400 });
   }
 
   if (!entity_id) {
-    return error(new Error('No entity id.'), res, 400);
+    return next({ message: 'No entity id.', status: 400 });
   }
 
   var now = new Date();
-  Promo.findOne({ entity_type: entity_type, active: true, start_time: { $lt: now }, expire_time: { $gt: now } }).exec(function(err, promo) {
-    if (err) return error(err, res);
-    if (!promo) return error(new Error('Promo campaign does not exists.'), res, 400);
-    if (promo.code_limit != 0 && promo.code_limit <= promo.code_count) return error(new Error('Code count exceeded.'), res, 401);
+  Promo.findOne({
+    entity_type: entity_type, 
+    active: true, 
+    start_time: { $lt: now },
+    expire_time: { $gt: now }
+  }).exec(function(err, promo) {
+    if (err) return next({ message: err.message, status: err.code || 500 });
+    if (!promo) return next({ message: 'Promo campaign does not exists.', status: 400 });
+    if (promo.code_limit != 0 && promo.code_limit <= promo.code_count) 
+      return next({ message: 'Code count exceeded.', status: 401 });
 
     Code.findOne({ entity_type: entity_type, entity_id: entity_id }).exec(function(err, code) {
-      if (err) return error(err, res);
-      if (code) return ok({
+      if (err) return next({ message: err.message, status: err.code || 500 });
+      if (code) {
+        res.response = {
           code: code.code,
           forward_points: code.forward_points,
           backward_points: code.backward_points
-        }, res);
+        };
+        return next();
+      }
 
       var values = {
         promo_id: promo.promo_id,
@@ -68,16 +75,18 @@ router
       Entity.create({ entity_type: entity_type, entity_id: entity_id, points: 0 }, function() {});
 
       Code.create(values, function(err, result) {
-        if (err) return error(err, res);
-
-        ok({
-          code: result.code,
-          forward_points: result.forward_points,
-          backward_points: result.backward_points
-        }, res);
+        if (err) return next({ message: err.message, status: err.code || 500 });
 
         promo.code_count++;
         promo.save();
+
+        res.response = {
+          code: result.code,
+          forward_points: result.forward_points,
+          backward_points: result.backward_points
+        };
+
+        return next();
       });
     });    
   });
@@ -95,38 +104,39 @@ router
  * @return object - information about forward and backwrad rewards (status, points amount) if any
  */
 
-.post('/:entity_type/:entity_id/apply/:code', function(req, res) {
+.post('/:entity_type/:entity_id/apply/:code', function(req, res, next) {
   var code = req.params.code;
   var entity_type = req.params.entity_type;
   var entity_id = req.params.entity_id;
 
   if (!code) {
-    return error(new Error('No promo code.'), res, 400);
+    return next({ message: 'No promo code.', status: 400 });
   }
 
   if (!entity_type || !entity_id) {
-    return error(new Error('No applier.'), res, 400);
+    return next({ message: 'No applier.', status: 400 });
   }
   
   Code.findOne({ code: code, entity_type: entity_type }).exec(function(err, applied) {
-    if (err) return error(err, res);
-    if (!applied) return error(new Error('Applied code is not part of the referal system.'), res, 400);
-    if (applied.entity_id == entity_id) return error(new Error('Can not apply own promo code.'), res, 400);
+    if (err) return next({ message: err.message, status: err.code || 500 });
 
-    if (applied.usage_limit != -1 && applied.usage_limit <= applied.usage_count) 
-      return error(new Error('Usage limit has been exceeded.'), res, 400);
+    if (!applied) return next({ message: 'Applied code is not part of the referal system.', status: 400 });
+    if (applied.entity_id == entity_id) return next({ message: 'Can not apply own promo code.', status: 400 });
+
+    if (applied.usage_limit != 0 && applied.usage_limit <= applied.usage_count) 
+      return next({ message: 'Usage limit has been exceeded.', status: 400 });
 
     var now = Date.now();
     if (now < applied.start_time.getTime() || now > applied.expire_time.getTime()) 
-      return error(new Error('Promo code has been expired.'), res, 401);
+      return next({ message: 'Promo code has been expired.', status: 401 });
 
     var now = new Date();
     Code.findOne({ entity_type: entity_type, entity_id: entity_id, start_time: { $lt: now }, expire_time: { $gt: now } }).exec(function(err, applier) {
-      if (err) return error(err, res);
-      if (!applier) return error(new Error('Applier is not part of the referal system.'), res, 400);
+      if (err) return next({ message: err.message, status: err.code || 500 });
+      if (!applier) return next({ message: 'Applier is not part of the referal system.', status: 400 });
 
-      if (!applied.special && applier.use_limit != -1 && applier.use_limit <= applier.use_count)
-        return error(new Error('Use limit has been exceeded.'), res, 401);
+      if (!applied.special && applier.use_limit != 0 && applier.use_limit <= applier.use_count)
+        return next({ message: 'Use limit has been exceeded.', code: 401 });
 
       var values = {
         applied: {
@@ -146,13 +156,15 @@ router
       };
       
       Network.findOne({ 'applied.code': applied.code, 'applier.code': applier.code }, function(err, result) {
-        if (err) return error(err, res);
-        if (result) return error(new Error('This promo code was already applied by this user.'), res, 400);
+        if (err) return next({ message: err.message, status: err.code || 500 });
+
+        if (result) return next({ message: 'This promo code was already applied by this user.', status: 400 });
 
         values.apply_time = new Date();
 
         Network.create(values, function(err, result) {
-          if (err) return error(err, res);
+          if (err) return next({ message: err.message, status: err.code || 500 });
+
           applied.usage_count++;
           applied.save();
 
@@ -233,7 +245,8 @@ router
               }
             }
           ], function(err, results) {
-            if (err) return error(err, res);
+            if (err) return next({ message: err.message, status: err.code || 500 });
+
             var response = {};
             if (results[0]) {
               response.forward_reward = {
@@ -253,7 +266,8 @@ router
                 status: results[1].status
               };
             }
-            ok(response, res);
+            res.response = response;
+            next();
           });
         });
       });
