@@ -3,6 +3,8 @@ var router = require('express').Router();
 var config = require('../config.json');
 var URL = config.AUTH_URL || 'http://localhost:3030';
 
+var Vendor = require('../init').Vendor;
+
 router
 
 .post('/', function(req, res, next) {

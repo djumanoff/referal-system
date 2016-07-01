@@ -1,5 +1,9 @@
 var router = require('express').Router();
 
+var Reward = require('../init').Reward;
+var Entity = require('../init').Entity;
+var Transaction = require('../init').Transaction;
+
 router
 
 .get('/', function(req, res, next) {

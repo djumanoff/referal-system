@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var Counter = require('../init').Counter;
 
 var schema = new Schema({
 	promo_id: Number,
@@ -7,7 +8,7 @@ var schema = new Schema({
 	description: String,
 	title: { type: String, required: true },
 	name: { type: String, required: true },
-	entity_type: { type: String, default: 'touchka_user'},	
+	entity_type: { type: String, default: 'touchka'},	
 	start_time: { type: Date, default: Date.now },
 	expire_time: { type: Date, default: -1 },
 	usage_limit: { type: Number, default: -1 },
@@ -34,21 +35,21 @@ schema.index({ expire_time: 1 });
 schema.index({ active: 1 });
 
 schema.pre('save', function(next) {
-  var self = this;
-  if (!Counter) {
-  	return next();
-  }
-  self.updated_time = new Date();
-  if (self.promo_id) {
-  	return next();
-  }
-  self.created_time = new Date();
-  Counter.getId('ref_promo', function(err, id) {
-  	if (err) return next(err);
-  	self.created_time = new Date();
-  	self.promo_id = id;
-    next();
-  });
+	var self = this;
+	if (!Counter) {
+		return next();
+	}
+	self.updated_time = new Date();
+	if (self.promo_id) {
+		return next();
+	}
+	self.created_time = new Date();
+	Counter.getId('ref_promo', function(err, id) {
+		if (err) return next(err);
+		self.created_time = new Date();
+		self.promo_id = id;
+		next();
+	});
 });
 
 module.exports = function(conn) {

@@ -13,7 +13,7 @@ var app = express();
 var port = config.port || 3000;
 var env = config.env || 'dev';
 
-app	
+app
 	.enable('trust proxy')
 	.disable('etag')
 	.get('/health', function(req, res) {
@@ -67,7 +67,7 @@ app
 		return res.json(res.response);
 	})	
 	.listen(port, function() {
-		require('./init');
+		// require('./init/models');
 	});
 
 

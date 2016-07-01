@@ -1,36 +1,7 @@
 var router = require('express').Router();
-
-// var error = require('touchka-service').error;
-// var ok = require('touchka-service').ok;
+var Entity = require('../init').Entity;
 
 router
-
-// .post('/', function(req, res, next) {
-//   var now = new Date();
-//   var values = {
-//     entity_id: req.body.entity_id,
-//     entity_type: req.body.entity_type.trim()
-//   };
-//   Entity.findOne(values).exec(function(err, entity) {
-//     if (err) return error(err, res);
-//     if (entity) return ok(entity, res);
-
-//     values.created_time = now;
-//     values.updated_time = now;
-
-//     Entity.create(values, function(err, result) {
-//       if (err) return error(err, res);
-//       ok(result, res);
-//     });
-//   });
-// })
-
-// .get('/', function(req, res, next) {
-//   Entity.find(req.query).exec(function(err, result) {
-//     if (err) return error(err, res);
-//     ok(result, res);
-//   });
-// })
 
 .param('id', function(req, res, next, id) {
   if (!parseInt(id)) {
@@ -97,8 +68,6 @@ router
 
 .post('/:type/:id/points/:amount/redeem', function(req, res, next) {
   var amount = req.params.amount;
-  var auth = req.headers.authorization;
-
   var operation_type = req.body.operation_type || req.params.type;
   var operation_id = req.body.operation_id;
 
@@ -107,11 +76,11 @@ router
   }
 
   Transaction.findOne({ operation_type: operation_type, operation_id: operation_id }, function(err, operation) {
-    if (err) return next({ message: err.message, status: err.code || 500 });
+    if (err) return next({ message: err.message, status: 500 });
     if (operation) return next();
 
     Entity.findOne({ entity_id: req.params.id, entity_type: req.params.type }, function(err, row) {
-      if (err) return next({ message: err.message, status: err.code || 500 });
+      if (err) return next({ message: err.message, status: 500 });
       if (!row) return next({ message: 'Entity not found.', status: 404 });
 
       Transaction.create({

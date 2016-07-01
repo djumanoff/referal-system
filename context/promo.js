@@ -2,8 +2,8 @@ var config = require('../config.json');
 var router = require('express').Router();
 var URL = config.AUTH_URL || 'http://localhost:3030';
 
-// var error = require('touchka-service').error;
-// var ok = require('touchka-service').ok;
+var Promo = require('../init').Promo;
+var Vendor = require('../init').Vendor;
 
 router
 

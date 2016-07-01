@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var rndstr = require("randomstring");
+var Counter = require('../init').Counter;
 
 var schema = new Schema({
 	code_id: { type: Number, default: 0 },
